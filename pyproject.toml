@@ -5,6 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "dv-flow-libgh"
 version = "0.0.1"
+description = "DV Flow task library for GitHub REST and GraphQL APIs"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Matthew Ballance", email = "matt.ballance@gmail.com"},
+]
 dependencies = [
     "dv-flow-mgr",
     "httpx",
@@ -16,11 +21,6 @@ test = [
     "pytest-asyncio",
     "respx",
 ]
-authors = [
-    {name = "Matthew Ballance", email = "matt.ballance@gmail.com"},
-]
-description = "DV Flow task library for GitHub REST and GraphQL APIs"
-license = {file = "LICENSE"}
 
 [project.entry-points."dv_flow.mgr"]
 libgh = "dv_flow.libgh.__ext__"
