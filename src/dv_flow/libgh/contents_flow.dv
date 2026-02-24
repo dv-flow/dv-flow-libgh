@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.contents
+  desc: DV Flow tasks for reading and writing GitHub repository file contents
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Get
+    doc: |
+      Reads a file or directory from a repository. File content is written
+      to ``content.b64`` (base64) and ``content.txt`` (decoded text) in
+      the task rundir. Outputs a GitHubRequestMeta item.
+
+      Example::
+
+        tasks:
+          - name: read_cfg
+            uses: gh.contents.Get
+            needs: [auth, repo]
+            with:
+              path: .github/config.yml
+              ref: main
+    shell: pytask
+    run: dv_flow.libgh.contents.ContentsGet
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      path:
+        type: str
+        value: ""
+        doc: Repository path to read (required).
+      ref:
+        type: str
+        value: ""
+        doc: Branch, tag, or commit SHA (defaults to the repo default branch).
+
+  - name: Put
+    doc: |
+      Creates or updates a file in a repository. Reads content from the
+      ``content`` parameter (plain text; encoded to base64 internally) or
+      from a ``content_b64`` parameter.
+
+      Example::
+
+        tasks:
+          - name: write_cfg
+            uses: gh.contents.Put
+            needs: [auth, repo]
+            with:
+              path: .github/config.yml
+              message: "Update config"
+              content: "key: value\n"
+    shell: pytask
+    run: dv_flow.libgh.contents.ContentsPut
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      path:
+        type: str
+        value: ""
+        doc: Repository path to write (required).
+      message:
+        type: str
+        value: ""
+        doc: Commit message (required).
+      content:
+        type: str
+        value: ""
+        doc: Plain-text file content (mutually exclusive with content_b64).
+      content_b64:
+        type: str
+        value: ""
+        doc: Base64-encoded file content.
+      sha:
+        type: str
+        value: ""
+        doc: |
+          Blob SHA of the file being replaced. Required when updating an
+          existing file; omit when creating a new file.
+      branch:
+        type: str
+        value: ""
+        doc: Branch to commit to (defaults to repo default branch).

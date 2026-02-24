@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.pulls.review
+  desc: DV Flow tasks for pull request reviews
+
+  imports:
+  - name: gh
+  - name: gh.pulls
+
+  tasks:
+  - name: Create
+    doc: |
+      Creates a review on a pull request and outputs a GitHubReviewRef.
+
+      Example::
+
+        tasks:
+          - name: review
+            uses: gh.pulls.review.Create
+            needs: [auth, repo, pr]
+            with:
+              body: "LGTM"
+              event: APPROVE
+    shell: pytask
+    run: dv_flow.libgh.pulls_review.PullsReviewCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubPullRef
+    with:
+      number:
+        type: int
+        value: 0
+        doc: PR number. Overrides any consumed GitHubPullRef when non-zero.
+      body:
+        type: str
+        value: ""
+        doc: Review body text.
+      event:
+        type: str
+        value: "COMMENT"
+        doc: "Review event: APPROVE, REQUEST_CHANGES, or COMMENT."
+      commit_id:
+        type: str
+        value: ""
+        doc: SHA of the commit to review (defaults to latest).

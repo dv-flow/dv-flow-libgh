@@ -1,0 +1,75 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.teams
+  desc: DV Flow tasks for GitHub team management (org-level)
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: List
+    doc: |
+      Lists teams in an organization. Outputs one std.DataItem per team
+      (team_slug, name, description, html_url).
+    shell: pytask
+    run: dv_flow.libgh.teams.TeamsList
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    with:
+      org:
+        type: str
+        value: ""
+        doc: GitHub organization name (required).
+      per_page:
+        type: int
+        value: 30
+
+  - name: AddMember
+    doc: |
+      Adds a user to a team.
+    shell: pytask
+    run: dv_flow.libgh.teams.TeamsAddMember
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    with:
+      org:
+        type: str
+        value: ""
+        doc: GitHub organization name (required).
+      team_slug:
+        type: str
+        value: ""
+        doc: Team slug (required).
+      username:
+        type: str
+        value: ""
+        doc: GitHub username to add (required).
+      role:
+        type: str
+        value: "member"
+        doc: "Role: member or maintainer."
+
+  - name: RemoveMember
+    doc: |
+      Removes a user from a team.
+    shell: pytask
+    run: dv_flow.libgh.teams.TeamsRemoveMember
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    with:
+      org:
+        type: str
+        value: ""
+        doc: GitHub organization name (required).
+      team_slug:
+        type: str
+        value: ""
+        doc: Team slug (required).
+      username:
+        type: str
+        value: ""
+        doc: GitHub username to remove (required).

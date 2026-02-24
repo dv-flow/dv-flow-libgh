@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.discussions
+  desc: DV Flow tasks for GitHub Discussions (GraphQL-backed)
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: List
+    doc: |
+      Lists discussions in a repository via GraphQL and outputs
+      GitHubDiscussionRef items (one per discussion).
+
+      Example::
+
+        tasks:
+          - name: disc_list
+            uses: gh.discussions.List
+            needs: [auth, repo]
+            with:
+              first: 20
+    shell: pytask
+    run: dv_flow.libgh.discussions.DiscussionsList
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      category_id:
+        type: str
+        value: ""
+        doc: Filter by GraphQL category node ID (optional).
+      first:
+        type: int
+        value: 20
+        doc: Maximum number of discussions to return.
+      after:
+        type: str
+        value: ""
+        doc: Cursor for pagination (from a previous List call).
+
+  - name: Create
+    doc: |
+      Creates a GitHub Discussion via GraphQL and outputs a
+      GitHubDiscussionRef.
+
+      ``repository_id`` must be the GraphQL node ID of the repository
+      (e.g. from gh.repos.Get or the gh.Repo task output — not yet
+      available, use an explicit value for now).
+
+      Example::
+
+        tasks:
+          - name: disc
+            uses: gh.discussions.Create
+            needs: [auth, repo]
+            with:
+              repository_id: "R_kgDO..."
+              category_id: "DIC_kwDO..."
+              title: "Weekly summary"
+              body: "Summary text."
+    shell: pytask
+    run: dv_flow.libgh.discussions.DiscussionsCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      repository_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the repository (required).
+      category_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the discussion category (required).
+      title:
+        type: str
+        value: ""
+        doc: Discussion title (required).
+      body:
+        type: str
+        value: ""
+        doc: Discussion body (Markdown).
+
+  - name: Edit
+    doc: |
+      Updates the title and/or body of an existing discussion via GraphQL.
+    shell: pytask
+    run: dv_flow.libgh.discussions.DiscussionsEdit
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubDiscussionRef
+    with:
+      discussion_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the discussion. Overrides any consumed GitHubDiscussionRef.
+      title:
+        type: str
+        value: ""
+        doc: New title (leave empty to keep current).
+      body:
+        type: str
+        value: ""
+        doc: New body (leave empty to keep current).
+
+  - name: Delete
+    doc: |
+      Deletes a discussion via GraphQL.
+    shell: pytask
+    run: dv_flow.libgh.discussions.DiscussionsDelete
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubDiscussionRef
+    with:
+      discussion_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the discussion. Overrides any consumed GitHubDiscussionRef.

@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.actions.workflowrun
+  desc: DV Flow tasks for GitHub Actions workflow run management
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: List
+    doc: |
+      Lists workflow runs and outputs one GitHubWorkflowRunRef per run.
+    shell: pytask
+    run: dv_flow.libgh.actions_wfrun.WorkflowRunList
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      workflow_id:
+        type: str
+        value: ""
+        doc: Workflow file name or ID to filter by (optional).
+      branch:
+        type: str
+        value: ""
+        doc: Branch filter (optional).
+      status:
+        type: str
+        value: ""
+        doc: "Status filter: queued, in_progress, completed, etc."
+      per_page:
+        type: int
+        value: 30
+
+  - name: Get
+    doc: |
+      Fetches a single workflow run by ID and outputs a GitHubWorkflowRunRef.
+    shell: pytask
+    run: dv_flow.libgh.actions_wfrun.WorkflowRunGet
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubWorkflowRunRef
+    with:
+      run_id:
+        type: int
+        value: 0
+        doc: Run ID. Overrides any consumed GitHubWorkflowRunRef.
+
+  - name: Cancel
+    doc: |
+      Cancels a workflow run. The run_id is resolved from a consumed
+      GitHubWorkflowRunRef or the ``run_id`` parameter.
+    shell: pytask
+    run: dv_flow.libgh.actions_wfrun.WorkflowRunCancel
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubWorkflowRunRef
+    with:
+      run_id:
+        type: int
+        value: 0
+
+  - name: Rerun
+    doc: |
+      Re-runs a workflow run (or only its failed jobs).
+    shell: pytask
+    run: dv_flow.libgh.actions_wfrun.WorkflowRunRerun
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubWorkflowRunRef
+    with:
+      run_id:
+        type: int
+        value: 0
+      failed_only:
+        type: bool
+        value: false
+        doc: When true, only re-runs failed jobs.

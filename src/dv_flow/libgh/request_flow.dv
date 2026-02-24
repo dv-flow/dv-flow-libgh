@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.request
+  desc: Low-level escape-hatch tasks for raw GitHub REST and GraphQL requests
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Rest
+    doc: |
+      Executes a raw GitHub REST API request. Outputs the JSON response body
+      as a file ``response.json`` in the task rundir, plus a GitHubRequestMeta
+      data item.
+
+      Use this as an escape hatch for API operations not covered by other tasks.
+
+      Example::
+
+        tasks:
+          - name: raw
+            uses: gh.request.Rest
+            needs: [auth, repo]
+            with:
+              method: GET
+              path: /repos/{owner}/{repo}/topics
+    shell: pytask
+    run: dv_flow.libgh.request.RestRequest
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      method:
+        type: str
+        value: "GET"
+        doc: "HTTP method: GET, POST, PATCH, PUT, DELETE."
+      path:
+        type: str
+        value: ""
+        doc: |
+          API path. May use {owner} and {repo} placeholders which are
+          substituted from a consumed GitHubRepoRef.
+      body:
+        type: map
+        doc: Request body (serialised as JSON).
+
+  - name: GraphQL
+    doc: |
+      Executes a raw GitHub GraphQL query or mutation. Outputs the ``data``
+      object as ``response.json`` in the task rundir, plus a
+      GitHubGraphQLMeta data item.
+
+      Example::
+
+        tasks:
+          - name: gql
+            uses: gh.request.GraphQL
+            needs: [auth]
+            with:
+              query: "{ viewer { login } }"
+    shell: pytask
+    run: dv_flow.libgh.request.GraphQLRequest
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    with:
+      query:
+        type: str
+        value: ""
+        doc: GraphQL query or mutation string (required).
+      variables:
+        type: map
+        doc: Variables to pass with the query.
+      operation_name:
+        type: str
+        value: ""
+        doc: Optional operation name.

@@ -1,0 +1,56 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.issues.comment
+  desc: DV Flow tasks for managing GitHub Issue comments
+
+  imports:
+  - name: gh
+  - name: gh.issues
+
+  tasks:
+  - name: Create
+    doc: |
+      Adds a comment to an existing GitHub issue and outputs a
+      GitHubCommentRef.
+
+      Consumes: gh.GitHubAuth, gh.GitHubRepoRef, gh.GitHubIssueRef.
+
+      Example::
+
+        tasks:
+          - name: auth
+            uses: gh.Auth
+          - name: repo
+            uses: gh.Repo
+            with:
+              owner: my-org
+              repo: my-repo
+          - name: issue
+            uses: gh.issues.Create
+            needs: [auth, repo]
+            with:
+              title: "Automated issue"
+          - name: comment
+            uses: gh.issues.comment.Create
+            needs: [auth, repo, issue]
+            with:
+              body: "First comment added by DV Flow."
+    shell: pytask
+    run: dv_flow.libgh.issues_comment.IssuesCommentCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubIssueRef
+    with:
+      body:
+        type: str
+        value: ""
+        doc: Comment body (Markdown, required).
+      issue_number:
+        type: int
+        value: 0
+        doc: |
+          Issue number. When non-zero, overrides the number from any consumed
+          gh.GitHubIssueRef data item.

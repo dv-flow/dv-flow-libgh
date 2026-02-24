@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.statuses
+  desc: DV Flow tasks for GitHub commit statuses
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Create
+    doc: |
+      Creates or updates a commit status and outputs a GitHubStatusRef.
+
+      Example::
+
+        tasks:
+          - name: status
+            uses: gh.statuses.Create
+            needs: [auth, repo]
+            with:
+              sha: ${{ head_sha }}
+              state: success
+              context: ci/my-check
+              description: All tests passed
+    shell: pytask
+    run: dv_flow.libgh.statuses.StatusesCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      sha:
+        type: str
+        value: ""
+        doc: Commit SHA to attach the status to (required).
+      state:
+        type: str
+        value: ""
+        doc: "Status state: error, failure, pending, success (required)."
+      context:
+        type: str
+        value: "default"
+        doc: Label identifying the status check (e.g. ci/build).
+      description:
+        type: str
+        value: ""
+        doc: Short description of the status.
+      target_url:
+        type: str
+        value: ""
+        doc: URL linking to more details (e.g. CI run page).

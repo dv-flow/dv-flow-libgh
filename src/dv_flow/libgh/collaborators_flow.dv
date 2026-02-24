@@ -1,0 +1,61 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.collaborators
+  desc: DV Flow tasks for GitHub repository collaborator management
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: List
+    doc: |
+      Lists collaborators for a repository.
+    shell: pytask
+    run: dv_flow.libgh.collaborators.CollaboratorsList
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      permission:
+        type: str
+        value: ""
+        doc: "Filter by permission: pull, triage, push, maintain, admin."
+      per_page:
+        type: int
+        value: 30
+
+  - name: Add
+    doc: |
+      Adds a collaborator to a repository.
+    shell: pytask
+    run: dv_flow.libgh.collaborators.CollaboratorsAdd
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      username:
+        type: str
+        value: ""
+        doc: GitHub username to add (required).
+      permission:
+        type: str
+        value: "push"
+        doc: "Permission level: pull, triage, push, maintain, admin."
+
+  - name: Remove
+    doc: |
+      Removes a collaborator from a repository.
+    shell: pytask
+    run: dv_flow.libgh.collaborators.CollaboratorsRemove
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      username:
+        type: str
+        value: ""
+        doc: GitHub username to remove (required).

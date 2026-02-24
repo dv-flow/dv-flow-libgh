@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dv-flow-libgh"
+version = "0.0.1"
+dependencies = [
+    "dv-flow-mgr",
+    "httpx",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "respx",
+]
+authors = [
+    {name = "Matthew Ballance", email = "matt.ballance@gmail.com"},
+]
+description = "DV Flow task library for GitHub REST and GraphQL APIs"
+license = {file = "LICENSE"}
+
+[project.entry-points."dv_flow.mgr"]
+libgh = "dv_flow.libgh.__ext__"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"dv_flow.libgh" = ["flow.dv", "*_flow.dv"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "strict"

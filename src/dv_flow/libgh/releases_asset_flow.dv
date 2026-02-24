@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.releases.asset
+  desc: DV Flow tasks for uploading assets to GitHub Releases
+
+  imports:
+  - name: gh
+  - name: gh.releases
+
+  tasks:
+  - name: Upload
+    doc: |
+      Uploads a file as a release asset and outputs a GitHubReleaseAssetRef.
+
+      The upload URL is taken from a consumed gh.GitHubReleaseRef, or you can
+      supply it directly via the ``upload_url`` parameter.
+
+      Example::
+
+        tasks:
+          - name: asset
+            uses: gh.releases.asset.Upload
+            needs: [auth, repo, rel]
+            with:
+              path: dist/my-binary
+              content_type: application/octet-stream
+    shell: pytask
+    run: dv_flow.libgh.releases_asset.ReleasesAssetUpload
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubReleaseRef
+    with:
+      path:
+        type: str
+        value: ""
+        doc: Local file path to upload (required).
+      name:
+        type: str
+        value: ""
+        doc: Asset name on GitHub (defaults to file basename).
+      content_type:
+        type: str
+        value: "application/octet-stream"
+        doc: MIME content type of the asset.
+      upload_url:
+        type: str
+        value: ""
+        doc: |
+          Override for the release upload URL. When empty, taken from the
+          consumed gh.GitHubReleaseRef.upload_url.

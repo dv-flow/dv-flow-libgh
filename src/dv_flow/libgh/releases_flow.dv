@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.releases
+  desc: DV Flow tasks for managing GitHub Releases
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Create
+    doc: |
+      Creates a GitHub release and outputs a GitHubReleaseRef.
+
+      Example::
+
+        tasks:
+          - name: rel
+            uses: gh.releases.Create
+            needs: [auth, repo]
+            with:
+              tag_name: v1.0.0
+              name: "Release 1.0.0"
+    shell: pytask
+    run: dv_flow.libgh.releases.ReleasesCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      tag_name:
+        type: str
+        value: ""
+        doc: Tag name for the release (required).
+      name:
+        type: str
+        value: ""
+        doc: Release name/title.
+      body:
+        type: str
+        value: ""
+        doc: Release notes (Markdown).
+      draft:
+        type: bool
+        value: false
+        doc: Create as a draft release.
+      prerelease:
+        type: bool
+        value: false
+        doc: Mark as a pre-release.
+      target_commitish:
+        type: str
+        value: ""
+        doc: Commitish (branch/SHA) the release is created from.
+      generate_release_notes:
+        type: bool
+        value: false
+        doc: Auto-generate release notes from commits.
+
+  - name: Update
+    doc: |
+      Updates an existing release. The release is identified by
+      ``release_id`` parameter or a consumed gh.GitHubReleaseRef.
+    shell: pytask
+    run: dv_flow.libgh.releases.ReleasesUpdate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubReleaseRef
+    with:
+      release_id:
+        type: int
+        value: 0
+        doc: Release ID. Overrides any consumed GitHubReleaseRef when non-zero.
+      tag_name:
+        type: str
+        value: ""
+      name:
+        type: str
+        value: ""
+      body:
+        type: str
+        value: ""
+      draft:
+        type: bool
+        value: false
+      prerelease:
+        type: bool
+        value: false
+
+  - name: Get
+    doc: |
+      Fetches a release by tag name and outputs a GitHubReleaseRef.
+    shell: pytask
+    run: dv_flow.libgh.releases.ReleasesGet
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      tag_name:
+        type: str
+        value: ""
+        doc: Tag name to look up (required).

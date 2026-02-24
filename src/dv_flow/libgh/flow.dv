@@ -1,0 +1,456 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh
+  desc: DV Flow task library for GitHub REST and GraphQL APIs
+
+  imports:
+  - name: std
+
+  types:
+  - name: GitHubAuth
+    uses: std.DataItem
+    doc: |
+      GitHub authentication credentials. Produced by gh.Auth and consumed
+      by all tasks that call the GitHub API.
+    with:
+      token:
+        type: str
+        value: ""
+        doc: GitHub personal access token (or app token). If empty, GITHUB_TOKEN env var is used.
+      auth_type:
+        type: str
+        value: "pat"
+        doc: Authentication type. One of pat, app, oauth, actions_token.
+
+  - name: GitHubRepoRef
+    uses: std.DataItem
+    doc: |
+      Identifies a GitHub repository and configures API behaviour (base URL,
+      version, retry policy). Produced by gh.Repo and consumed by API tasks.
+    with:
+      owner:
+        type: str
+        value: ""
+        doc: Repository owner (user or organisation).
+      repo:
+        type: str
+        value: ""
+        doc: Repository name.
+      api_base:
+        type: str
+        value: "https://api.github.com"
+        doc: GitHub API base URL.
+      api_version:
+        type: str
+        value: "2022-11-28"
+        doc: GitHub API version header value.
+      retry_limit:
+        type: int
+        value: 3
+        doc: Maximum number of retries on transient errors.
+      retry_backoff_ms:
+        type: int
+        value: 500
+        doc: Base backoff in milliseconds between retries (jitter is added).
+
+  - name: GitHubIssueRef
+    uses: std.DataItem
+    doc: |
+      Reference to a GitHub issue. Produced by gh.issues.* tasks and
+      consumed by downstream tasks that need to act on the same issue.
+    with:
+      number:
+        type: int
+        value: 0
+        doc: Issue number.
+      html_url:
+        type: str
+        value: ""
+        doc: Web URL of the issue.
+      owner:
+        type: str
+        value: ""
+        doc: Repository owner (carried forward for downstream tasks).
+      repo:
+        type: str
+        value: ""
+        doc: Repository name (carried forward for downstream tasks).
+
+  - name: GitHubCommentRef
+    uses: std.DataItem
+    doc: |
+      Reference to a GitHub issue comment. Produced by gh.issues.comment.Create.
+    with:
+      comment_id:
+        type: int
+        value: 0
+        doc: Comment ID.
+      html_url:
+        type: str
+        value: ""
+        doc: Web URL of the comment.
+
+  - name: GitHubRequestMeta
+    uses: std.DataItem
+    doc: |
+      Metadata returned alongside a GitHub API response, useful for
+      caching and rate-limit-aware polling.
+    with:
+      etag:
+        type: str
+        value: ""
+      rate_limit_remaining:
+        type: int
+        value: -1
+      rate_limit_reset:
+        type: int
+        value: 0
+        doc: Unix timestamp at which the rate limit resets.
+      response_status:
+        type: int
+        value: 0
+
+  - name: GitHubPullRef
+    uses: std.DataItem
+    doc: |
+      Reference to a GitHub pull request. Produced by gh.pulls.* tasks.
+    with:
+      number:
+        type: int
+        value: 0
+        doc: Pull request number.
+      html_url:
+        type: str
+        value: ""
+      head:
+        type: str
+        value: ""
+        doc: Head branch name.
+      base:
+        type: str
+        value: ""
+        doc: Base branch name.
+      merged:
+        type: bool
+        value: false
+      owner:
+        type: str
+        value: ""
+      repo:
+        type: str
+        value: ""
+
+  - name: GitHubReviewRef
+    uses: std.DataItem
+    doc: |
+      Reference to a pull request review. Produced by gh.pulls.review.Create.
+    with:
+      review_id:
+        type: int
+        value: 0
+      html_url:
+        type: str
+        value: ""
+      state:
+        type: str
+        value: ""
+        doc: Review state (APPROVED, CHANGES_REQUESTED, COMMENT, PENDING).
+
+  - name: GitHubReleaseRef
+    uses: std.DataItem
+    doc: |
+      Reference to a GitHub release. Produced by gh.releases.* tasks.
+    with:
+      release_id:
+        type: int
+        value: 0
+      tag_name:
+        type: str
+        value: ""
+      html_url:
+        type: str
+        value: ""
+      upload_url:
+        type: str
+        value: ""
+        doc: Upload URL for attaching release assets.
+      owner:
+        type: str
+        value: ""
+      repo:
+        type: str
+        value: ""
+
+  - name: GitHubReleaseAssetRef
+    uses: std.DataItem
+    doc: |
+      Reference to an asset attached to a GitHub release.
+    with:
+      asset_id:
+        type: int
+        value: 0
+      name:
+        type: str
+        value: ""
+      browser_download_url:
+        type: str
+        value: ""
+
+  - name: GitHubDiscussionRef
+    uses: std.DataItem
+    doc: |
+      Reference to a GitHub Discussion. Produced by gh.discussions.* tasks.
+    with:
+      discussion_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the discussion.
+      number:
+        type: int
+        value: 0
+      url:
+        type: str
+        value: ""
+      owner:
+        type: str
+        value: ""
+      repo:
+        type: str
+        value: ""
+
+  - name: GitHubDiscussionCommentRef
+    uses: std.DataItem
+    doc: |
+      Reference to a GitHub Discussion comment.
+    with:
+      comment_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the comment.
+      url:
+        type: str
+        value: ""
+
+  - name: GitHubGraphQLMeta
+    uses: std.DataItem
+    doc: |
+      Metadata from a GraphQL response (rate limits, cost).
+    with:
+      rate_limit_remaining:
+        type: int
+        value: -1
+      rate_limit_reset:
+        type: int
+        value: 0
+      cost:
+        type: int
+        value: 0
+      throttle_status:
+        type: str
+        value: ""
+
+  - name: GitHubRepoInfo
+    uses: std.DataItem
+    doc: |
+      Extended repository information including GraphQL node ID.
+      Produced by gh.repos.Get.
+    with:
+      owner:
+        type: str
+        value: ""
+      repo:
+        type: str
+        value: ""
+      repository_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the repository (used for Discussions, Projects, etc.).
+      default_branch:
+        type: str
+        value: ""
+      html_url:
+        type: str
+        value: ""
+      private:
+        type: bool
+        value: false
+
+  - name: GitHubWorkflowRunRef
+    uses: std.DataItem
+    doc: Reference to a GitHub Actions workflow run.
+    with:
+      run_id:
+        type: int
+        value: 0
+      workflow_id:
+        type: int
+        value: 0
+      name:
+        type: str
+        value: ""
+      status:
+        type: str
+        value: ""
+      conclusion:
+        type: str
+        value: ""
+      html_url:
+        type: str
+        value: ""
+      owner:
+        type: str
+        value: ""
+      repo:
+        type: str
+        value: ""
+
+  - name: GitHubArtifactRef
+    uses: std.DataItem
+    doc: Reference to a GitHub Actions artifact.
+    with:
+      artifact_id:
+        type: int
+        value: 0
+      name:
+        type: str
+        value: ""
+      size_in_bytes:
+        type: int
+        value: 0
+      archive_download_url:
+        type: str
+        value: ""
+      expired:
+        type: bool
+        value: false
+
+  - name: GitHubStatusRef
+    uses: std.DataItem
+    doc: Reference to a GitHub commit status. Produced by gh.statuses.Create.
+    with:
+      status_id:
+        type: int
+        value: 0
+      state:
+        type: str
+        value: ""
+      context:
+        type: str
+        value: ""
+      html_url:
+        type: str
+        value: ""
+
+  - name: GitHubDeploymentRef
+    uses: std.DataItem
+    doc: Reference to a GitHub deployment.
+    with:
+      deployment_id:
+        type: int
+        value: 0
+      ref:
+        type: str
+        value: ""
+      environment:
+        type: str
+        value: ""
+      status:
+        type: str
+        value: ""
+      url:
+        type: str
+        value: ""
+      owner:
+        type: str
+        value: ""
+      repo:
+        type: str
+        value: ""
+
+  - name: GitHubCheckRunRef
+    uses: std.DataItem
+    doc: Reference to a GitHub check run.
+    with:
+      check_run_id:
+        type: int
+        value: 0
+      name:
+        type: str
+        value: ""
+      status:
+        type: str
+        value: ""
+      conclusion:
+        type: str
+        value: ""
+      html_url:
+        type: str
+        value: ""
+
+  tasks:
+  - name: Auth
+    doc: |
+      Creates a GitHubAuth data item from a token parameter or the
+      GITHUB_TOKEN environment variable.
+
+      Example::
+
+        tasks:
+          - name: auth
+            uses: gh.Auth
+            # token defaults to $GITHUB_TOKEN env var
+    shell: pytask
+    run: dv_flow.libgh.gh_auth.Auth
+    consumes: none
+    passthrough: unused
+    with:
+      token:
+        type: str
+        value: ""
+        doc: |
+          GitHub token. When empty the task falls back to the GITHUB_TOKEN
+          environment variable.
+      auth_type:
+        type: str
+        value: "pat"
+        doc: Authentication type (pat, app, oauth, actions_token).
+
+  - name: Repo
+    doc: |
+      Creates a GitHubRepoRef data item that identifies a repository and
+      configures API behaviour for downstream tasks.
+
+      Example::
+
+        tasks:
+          - name: repo
+            uses: gh.Repo
+            with:
+              owner: my-org
+              repo: my-repo
+    shell: pytask
+    run: dv_flow.libgh.gh_repo.Repo
+    consumes: none
+    passthrough: unused
+    with:
+      owner:
+        type: str
+        value: ""
+        doc: Repository owner.
+      repo:
+        type: str
+        value: ""
+        doc: Repository name.
+      api_base:
+        type: str
+        value: "https://api.github.com"
+      api_version:
+        type: str
+        value: "2022-11-28"
+      retry_limit:
+        type: int
+        value: 3
+      retry_backoff_ms:
+        type: int
+        value: 500

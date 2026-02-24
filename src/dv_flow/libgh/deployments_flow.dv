@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.deployments
+  desc: DV Flow tasks for GitHub deployments
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Create
+    doc: |
+      Creates a deployment and outputs a GitHubDeploymentRef.
+    shell: pytask
+    run: dv_flow.libgh.deployments.DeploymentsCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      ref:
+        type: str
+        value: ""
+        doc: Branch, tag, or SHA to deploy (required).
+      environment:
+        type: str
+        value: "production"
+        doc: Deployment environment name.
+      description:
+        type: str
+        value: ""
+      auto_merge:
+        type: bool
+        value: false
+        doc: Attempt to auto-merge the default branch into the ref.
+      required_contexts:
+        type: list
+        doc: Status contexts that must pass before the deployment proceeds.
+
+  - name: StatusCreate
+    doc: |
+      Creates a deployment status and outputs an updated GitHubDeploymentRef.
+    shell: pytask
+    run: dv_flow.libgh.deployments.DeploymentsStatusCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubDeploymentRef
+    with:
+      deployment_id:
+        type: int
+        value: 0
+        doc: Deployment ID. Overrides any consumed GitHubDeploymentRef.
+      state:
+        type: str
+        value: ""
+        doc: "Status state: error, failure, inactive, in_progress, queued, pending, success (required)."
+      description:
+        type: str
+        value: ""
+      log_url:
+        type: str
+        value: ""
+      environment_url:
+        type: str
+        value: ""

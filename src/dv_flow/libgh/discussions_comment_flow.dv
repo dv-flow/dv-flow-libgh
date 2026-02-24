@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.discussions.comment
+  desc: DV Flow tasks for GitHub Discussion comments (GraphQL-backed)
+
+  imports:
+  - name: gh
+  - name: gh.discussions
+
+  tasks:
+  - name: Create
+    doc: |
+      Adds a comment to a GitHub Discussion and outputs a
+      GitHubDiscussionCommentRef.
+
+      Example::
+
+        tasks:
+          - name: comment
+            uses: gh.discussions.comment.Create
+            needs: [auth, repo, disc]
+            with:
+              body: "Thanks for the update!"
+    shell: pytask
+    run: dv_flow.libgh.discussions_comment.DiscussionsCommentCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubDiscussionRef
+    with:
+      body:
+        type: str
+        value: ""
+        doc: Comment body (Markdown, required).
+      discussion_id:
+        type: str
+        value: ""
+        doc: |
+          GraphQL node ID of the discussion. When non-empty, overrides any
+          consumed gh.GitHubDiscussionRef.
+      reply_to_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of a comment to reply to (optional).
+
+  - name: Edit
+    doc: |
+      Updates the body of an existing discussion comment via GraphQL.
+    shell: pytask
+    run: dv_flow.libgh.discussions_comment.DiscussionsCommentEdit
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubDiscussionCommentRef
+    with:
+      comment_id:
+        type: str
+        value: ""
+        doc: GraphQL node ID of the comment. Overrides any consumed GitHubDiscussionCommentRef.
+      body:
+        type: str
+        value: ""
+        doc: New body (Markdown, required).

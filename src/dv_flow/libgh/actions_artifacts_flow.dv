@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.actions.artifacts
+  desc: DV Flow tasks for GitHub Actions artifact management
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: List
+    doc: |
+      Lists artifacts for a workflow run or the whole repo.
+      Outputs one GitHubArtifactRef per artifact.
+    shell: pytask
+    run: dv_flow.libgh.actions_artifacts.ArtifactsList
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubWorkflowRunRef
+    with:
+      run_id:
+        type: int
+        value: 0
+        doc: Workflow run ID. Overrides any consumed GitHubWorkflowRunRef.
+      name:
+        type: str
+        value: ""
+        doc: Filter by artifact name (optional).
+
+  - name: Download
+    doc: |
+      Downloads an artifact archive to the task rundir.
+      The artifact is saved as ``artifact.zip``.
+    shell: pytask
+    run: dv_flow.libgh.actions_artifacts.ArtifactsDownload
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubArtifactRef
+    with:
+      artifact_id:
+        type: int
+        value: 0
+        doc: Artifact ID. Overrides any consumed GitHubArtifactRef.
+
+  - name: Delete
+    doc: |
+      Deletes an artifact.
+    shell: pytask
+    run: dv_flow.libgh.actions_artifacts.ArtifactsDelete
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubArtifactRef
+    with:
+      artifact_id:
+        type: int
+        value: 0
+        doc: Artifact ID. Overrides any consumed GitHubArtifactRef.

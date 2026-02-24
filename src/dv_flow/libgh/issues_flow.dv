@@ -1,0 +1,113 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.issues
+  desc: DV Flow tasks for managing GitHub Issues
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Create
+    doc: |
+      Creates a new GitHub issue and outputs a GitHubIssueRef.
+
+      Consumes: gh.GitHubAuth, gh.GitHubRepoRef (from upstream tasks).
+
+      Example::
+
+        tasks:
+          - name: auth
+            uses: gh.Auth
+          - name: repo
+            uses: gh.Repo
+            with:
+              owner: my-org
+              repo: my-repo
+          - name: new_issue
+            uses: gh.issues.Create
+            needs: [auth, repo]
+            with:
+              title: "Automated issue"
+              body: "Created by DV Flow"
+    shell: pytask
+    run: dv_flow.libgh.issues.IssuesCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      title:
+        type: str
+        value: ""
+        doc: Issue title (required).
+      body:
+        type: str
+        value: ""
+        doc: Issue body (Markdown).
+      labels:
+        type: list
+        doc: Labels to apply.
+      assignees:
+        type: list
+        doc: Usernames to assign.
+      milestone:
+        type: int
+        value: 0
+        doc: Milestone number (0 = none).
+
+  - name: Update
+    doc: |
+      Updates fields on an existing GitHub issue.
+
+      The issue number is resolved from a consumed gh.GitHubIssueRef data item
+      or from the ``number`` parameter (parameter takes precedence).
+    shell: pytask
+    run: dv_flow.libgh.issues.IssuesUpdate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubIssueRef
+    with:
+      number:
+        type: int
+        value: 0
+        doc: Issue number. When non-zero, overrides any consumed GitHubIssueRef.
+      title:
+        type: str
+        value: ""
+        doc: New title (leave empty to keep existing).
+      body:
+        type: str
+        value: ""
+        doc: New body (leave empty to keep existing).
+      labels:
+        type: list
+        doc: Replacement label set (omit to leave unchanged).
+      assignees:
+        type: list
+        doc: Replacement assignee set (omit to leave unchanged).
+      state:
+        type: str
+        value: ""
+        doc: "New state: 'open' or 'closed' (leave empty to keep existing)."
+
+  - name: Close
+    doc: |
+      Closes a GitHub issue.
+
+      The issue number is resolved from a consumed gh.GitHubIssueRef data item
+      or from the ``number`` parameter (parameter takes precedence).
+    shell: pytask
+    run: dv_flow.libgh.issues.IssuesClose
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubIssueRef
+    with:
+      number:
+        type: int
+        value: 0
+        doc: Issue number. When non-zero, overrides any consumed GitHubIssueRef.

@@ -1,0 +1,111 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.pulls
+  desc: DV Flow tasks for managing GitHub Pull Requests
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Create
+    doc: |
+      Creates a new pull request and outputs a GitHubPullRef.
+
+      Example::
+
+        tasks:
+          - name: pr
+            uses: gh.pulls.Create
+            needs: [auth, repo]
+            with:
+              title: "My PR"
+              head: feature-branch
+              base: main
+    shell: pytask
+    run: dv_flow.libgh.pulls.PullsCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      title:
+        type: str
+        value: ""
+        doc: Pull request title (required).
+      head:
+        type: str
+        value: ""
+        doc: Head branch name (required).
+      base:
+        type: str
+        value: ""
+        doc: Base branch name (required).
+      body:
+        type: str
+        value: ""
+        doc: Pull request body (Markdown).
+      draft:
+        type: bool
+        value: false
+        doc: Open as draft pull request.
+
+  - name: Update
+    doc: |
+      Updates an existing pull request. The PR number is resolved from a
+      consumed gh.GitHubPullRef or from the ``number`` parameter.
+    shell: pytask
+    run: dv_flow.libgh.pulls.PullsUpdate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubPullRef
+    with:
+      number:
+        type: int
+        value: 0
+        doc: PR number. Overrides any consumed GitHubPullRef when non-zero.
+      title:
+        type: str
+        value: ""
+      body:
+        type: str
+        value: ""
+      state:
+        type: str
+        value: ""
+        doc: "'open' or 'closed'."
+      base:
+        type: str
+        value: ""
+        doc: New base branch.
+
+  - name: Merge
+    doc: |
+      Merges a pull request. The PR number is resolved from a consumed
+      gh.GitHubPullRef or from the ``number`` parameter.
+    shell: pytask
+    run: dv_flow.libgh.pulls.PullsMerge
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubPullRef
+    with:
+      number:
+        type: int
+        value: 0
+        doc: PR number. Overrides any consumed GitHubPullRef when non-zero.
+      commit_title:
+        type: str
+        value: ""
+        doc: Title for the merge commit (optional).
+      commit_message:
+        type: str
+        value: ""
+        doc: Message for the merge commit (optional).
+      merge_method:
+        type: str
+        value: "merge"
+        doc: "Merge strategy: merge, squash, or rebase."

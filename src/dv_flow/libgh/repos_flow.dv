@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.repos
+  desc: DV Flow tasks for GitHub repository management
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Get
+    doc: |
+      Fetches repository metadata and outputs a GitHubRepoInfo data item,
+      including the GraphQL node ID needed for Discussions and Projects.
+
+      Example::
+
+        tasks:
+          - name: repo_info
+            uses: gh.repos.Get
+            needs: [auth, repo]
+    shell: pytask
+    run: dv_flow.libgh.repos.ReposGet
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+
+  - name: List
+    doc: |
+      Lists repositories for a user or organisation. Outputs one
+      GitHubRepoInfo item per repository found.
+    shell: pytask
+    run: dv_flow.libgh.repos.ReposList
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      org:
+        type: str
+        value: ""
+        doc: Organisation name. When empty, lists the authenticated user's repos.
+      type:
+        type: str
+        value: "all"
+        doc: "Filter: all, public, private, forks, sources, member."
+      per_page:
+        type: int
+        value: 30
+        doc: Results per page (max 100).
+
+  - name: Create
+    doc: |
+      Creates a new repository and outputs a GitHubRepoInfo item.
+    shell: pytask
+    run: dv_flow.libgh.repos.ReposCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    with:
+      name:
+        type: str
+        value: ""
+        doc: Repository name (required).
+      org:
+        type: str
+        value: ""
+        doc: Organisation to create under (omit for personal repo).
+      description:
+        type: str
+        value: ""
+      private:
+        type: bool
+        value: false
+      auto_init:
+        type: bool
+        value: false
+        doc: Initialise with a README.
+
+  - name: Update
+    doc: |
+      Updates repository settings and outputs a GitHubRepoInfo item.
+    shell: pytask
+    run: dv_flow.libgh.repos.ReposUpdate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      description:
+        type: str
+        value: ""
+      homepage:
+        type: str
+        value: ""
+      private:
+        type: bool
+        value: false
+      default_branch:
+        type: str
+        value: ""

@@ -1,0 +1,14 @@
+
+package:
+  name: dv-flow-libgh
+
+  dep-sets:
+  - name: default-dev
+    deps:
+    - name: dv-flow-mgr
+      url: https://github.com/dv-flow/dv-flow-mgr.git
+    - name: sphinx
+      src: pypi
+    - name: pytest
+      src: pypi
+

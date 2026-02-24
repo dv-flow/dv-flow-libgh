@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://dv-flow.github.io/flow.dv.schema.json
+
+package:
+  name: gh.checks
+  desc: DV Flow tasks for GitHub Checks API (requires GitHub App authentication)
+
+  imports:
+  - name: gh
+
+  tasks:
+  - name: Create
+    doc: |
+      Creates a check run and outputs a GitHubCheckRunRef.
+
+      **Note**: Creating check runs requires a GitHub App installation token.
+      PATs and OAuth tokens cannot write to the Checks API.
+
+      Example::
+
+        tasks:
+          - name: check
+            uses: gh.checks.Create
+            needs: [auth, repo]
+            with:
+              name: my-check
+              head_sha: ${{ sha }}
+              status: in_progress
+    shell: pytask
+    run: dv_flow.libgh.checks.ChecksCreate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    with:
+      name:
+        type: str
+        value: ""
+        doc: Check run name (required).
+      head_sha:
+        type: str
+        value: ""
+        doc: SHA of the commit to check (required).
+      status:
+        type: str
+        value: "queued"
+        doc: "Initial status: queued, in_progress, completed."
+      conclusion:
+        type: str
+        value: ""
+        doc: "Required when status=completed: success, failure, neutral, cancelled, skipped, timed_out, action_required."
+      details_url:
+        type: str
+        value: ""
+        doc: URL of a page with more details about the check.
+      title:
+        type: str
+        value: ""
+        doc: Check run output title.
+      summary:
+        type: str
+        value: ""
+        doc: Check run output summary (Markdown).
+
+  - name: Update
+    doc: |
+      Updates an existing check run. Requires GitHub App authentication.
+    shell: pytask
+    run: dv_flow.libgh.checks.ChecksUpdate
+    passthrough: unused
+    consumes:
+    - type: gh.GitHubAuth
+    - type: gh.GitHubRepoRef
+    - type: gh.GitHubCheckRunRef
+    with:
+      check_run_id:
+        type: int
+        value: 0
+        doc: Check run ID. Overrides any consumed GitHubCheckRunRef.
+      status:
+        type: str
+        value: ""
+      conclusion:
+        type: str
+        value: ""
+      title:
+        type: str
+        value: ""
+      summary:
+        type: str
+        value: ""
